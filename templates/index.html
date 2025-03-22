@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Word Witch</title>
+
+    <style>
+        textarea {
+            padding: 2% 2% 2% 5%;
+            overflow-y: auto;
+            border-radius: 50px;
+            width: 75%;
+            height: 32%;
+            font-size: 25px;
+            margin-bottom: 1.2vh;
+            border: 3px solid #333;
+        }
+    </style>
+</head>
+<body id="body" style="background-color: #FF4136; overflow: hidden;">
+    <div class="container">
+        <div class="Header" style="margin-bottom: 8vw;">
+            <div class="title">
+                Word Witch
+            </div>
+            <h2>A game that ridiculously good</h2>
+        </div>
+        <div class="allStuff">
+            <div class="playGame">
+                <div onclick="pullAside(); PlayMode()" onmouseover="PlayGameHover()" onmouseout="PlayGameUnhover()" class="button">
+                    <div class="image" style="background-color: #2ECC40;">
+                        <img src="{{ url_for('static', filename='images/play-button-arrowhead.png') }}"  alt="">
+                    </div>
+                    <h2 id="btnText1" class="btnText">Play</h2>
+                </div>
+                <div onclick="pullAside(); SettingsMode()" onmouseover="SettingHover()" onmouseout="SettingUnhover()" class="button">
+                    <div class="image" style="background-color: #0074D9;">
+                        <img src="{{ url_for('static', filename='images/setting.png') }}"  alt="">
+                    </div>
+                    <h2 id="btnText2"class="btnText">Settings</h2>
+                </div>
+                <div onclick="pullAside(); HowToPlayMode()" onmouseover="HowToPlayHover()" onmouseout="HowToPlayUnhover()" class="button">
+                    <div class="image" style="background-color: #FFDC00;">
+                        <img src="{{ url_for('static', filename='images/question-sign.png') }}" alt="">
+                    </div>
+                    <h2 id="btnText3" class="btnText">How To Play?</h2>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="PlayForm">
+                    <h1>Play The Game!</h1>
+                    <form action="{{ url_for('game') }}" method="GET">
+                        <textarea name="player_name" placeholder="type a name"></textarea>
+                        <button type="submit">>></button>
+                    </form>                    
+                </div>
+                <div class="Settings">
+                    <form action="">
+                        <div style="display: flex; flex-direction: row;">
+                            <h1 style="margin-right: 20px;">Sound</h1>
+                            <input type="checkbox" name="name" id="" placeholder="type a name">
+                        </div>
+                        <button type="submit">Kaydet</button>
+                    </form>
+                </div>
+                <div class="HowToPlay">
+                    <div style="align-items: center; justify-content: center; display: flex; flex-direction: column;">
+                        <h1>How To Play?</h1>
+                        <ul style="font-size: 15px;">
+                            <li>Game gives you random word</li>
+                            <li>You type a word that stars with the words last letter</li>
+                            <li>Then the word you typed becomes main word</li>
+                        </ul>
+                        <h3>That's it</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script/script.js') }}"></script>
+</body>
+</html>

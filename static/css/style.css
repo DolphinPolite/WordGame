@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+    font-style: normal;
+}
+
+html {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: first baseline;
+    align-items: center;
+    transition: background-color 0.5s ease-in-out;
+    
+}
+
+.container {
+    border-radius: 50px;
+    width: 1280px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.Header{
+    padding: 0px 30px 0px 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #3b3b3b;
+}
+
+.title {
+    font-size: 5vw;
+    font-weight: 700;
+    color: #333;
+    
+    font-weight: 350px;
+    letter-spacing: 0.5vw;
+    word-spacing: 1vw;
+    
+}
+
+.playGame {
+    width: 40%;
+    font-size: 2vw;
+    font-weight: 200px;
+    height: 15vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    float: left;
+}
+
+.allStuff {
+    width: 100%;
+    margin-left: 40vw;
+    transition: margin 0.5s ease-in-out;
+}
+
+.panel {
+    float: left;
+    margin-top: -12vh;
+    position: relative; /* İçindeki absolute elemanlar için referans noktası sağlar */    
+}
+
+.panel > div {
+    position: absolute; /* Elemanları aynı pozisyona yerleştirmek için */
+    top: 0; /* Y koordinatı */
+    left: 0; /* X koordinatı */
+}
+
+
+.button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+.image {
+    height: 100px;
+    width: 100px;
+    z-index: 20;
+    margin-right: -45px;    
+    border-radius: 50px;
+    border: 3px solid #333;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+img {
+    object-fit: cover;
+    width: 50%;
+    height: 50%;
+}
+
+.btnText {
+    overflow: hidden;
+    transition: width 0.5s ease-in-out, padding 0.5s ease-in-out;
+    width: 0px;
+    padding: 0;
+    height: 50px;
+    font-size: 2vw;
+    border-radius: 50px;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: last baseline;
+    z-index: 10;
+}
+
+.PlayForm, .Settings, .HowToPlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 50px;
+    width: 0px;
+    height: 200px;
+    overflow: hidden;
+    margin-left: 90vw;
+    transition: margin 0.55s ease-in-out;
+}
+
+button {
+    background-color: rgb(51, 51, 51,0.5);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    border: 3px solid #333;
+    cursor: pointer;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 0.8vw;
+    width: 4vw;
+    height: 4vh;
+
+    transition: width 0.2s ease-in-out, height 0.2s ease-in-out;
+}
+
+button:hover {
+    width: 4.5vw;
+    height: 4.5vh;
+    box-shadow: 0 0 60px #54f767;
+}

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
+    <title>Word Witch The Game</title>
+
+    <style>
+        @keyframes flashError {
+            0% { background-color: #2ECC40; }
+            50% { background-color: #FF4136; }
+            100% { background-color: #2ECC40; }
+        }
+        
+        .error-animation {
+            animation: flashError 0.5s ease;
+        }
+
+        .used-words::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .used-words::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+
+        .used-words::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        .used-words::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+    </style>
+    
+</head>
+<body id="body" style="background-color: #2ECC40; overflow: hidden;">
+    <div class="container">
+        <audio id="correct-sound" src="{{ url_for('static', filename='sounds/correct.mp3') }}" preload="auto"></audio>
+        <audio id="wrong-sound" src="{{ url_for('static', filename='sounds/wrong.mp3') }}" preload="auto"></audio>
+        <div class="Header" style="margin-bottom: 3vw;">
+            <div class="little-title">
+                Word Witch
+            </div>
+            <h2 class="little">A game that ridiculously good</h2>
+            <div id="game-info">
+                <p class="little-title" style="margin-top: 2vh;">Skor: <span id="score">{{ score }}</span></p>
+                <p class="little-title" style="margin-top: 1vh; color: #fa2e24;">Süre: <span id="timer" data-time="{{ time }}">{{ time }}</span> s</p>
+                <p class="little-little-title" style="margin-top: 1.5vh; color: #fa2e24;"><span id="error-text"></span></p>
+            </div>
+        </div>
+
+        <div class="playable-area">
+            <div class="history">
+                <div class="little-title" style="border-bottom: 3px solid #333; margin-bottom: 25px; position: sticky; top: 0; background-color: #2ECC40; z-index: 10;">
+                    history
+                </div>
+                <!-- Geçmiş kelimeler listesi -->
+                <div class="used-words" style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; padding: 20px; scrollbar-width: thin;">
+                    {% for word in session.get('used_words', []) %}
+                        <div class="used-word">{{ word }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="texting-area">
+                <div class="the-word">
+                    <h6>word:</h6>
+                    <div style="display: inline-block; position: relative; z-index: 20;">
+                        <img src="{{ url_for('static', filename='images/marked.png') }}" alt="" class="word-related">
+                        <div class="word" id="current-word">
+                            <!-- Rastgele kelime buraya gelecek -->
+                            {{ current_word }}
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                margin-top: 1vh;">
+               
+                <form id="word-form" action="{{ url_for('game') }}" method="POST" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <textarea name="word" id="word-input" placeholder="type your word"></textarea>
+                    <input type="hidden" name="time_left" id="time-left-input" value="{{ time }}">
+                    <button type="submit" id="submit-button">>></button>
+                </form>
+            </div>
+            </div>
+        </div>
+    </div>
+    <div class="leaveGame">
+        <div data-url="{{ url_for('index') }}" onclick="leaveGame(this)" onmouseover="LeaveGameHover()" onmouseout="LeaveGameUnhover()" class="button">
+            <div class="image" style="background-color: #FF4136;">
+                <img src="{{ url_for('static', filename='images/logout.png') }}"  alt="">
+            </div>
+            <h2 id="btnText1" class="btnText">Leaving</h2>
+        </div>
+    </div>
+   
+    <script>
+    function leaveGame(element) {
+        window.location.href = element.getAttribute('data-url');
+    }
+    </script>
+    <script src="{{ url_for('static', filename='script/script.js') }}"></script>
+   
+    <script>
+            document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM loaded");
+
+            const correctSound = document.getElementById('correct-sound');
+            const wrongSound = document.getElementById('wrong-sound');
+
+            // Ses çalma fonksiyonları
+            function playCorrectSound() {
+                correctSound.currentTime = 30; // Sesi başa sar
+                correctSound.play();
+            }
+
+            function playWrongSound() {
+                wrongSound.currentTime = 0;
+                wrongSound.play();
+            }
+
+            
+            // Elementleri seç
+            const wordForm = document.getElementById('word-form');
+            const wordInput = document.getElementById('word-input');
+            const submitButton = document.getElementById('submit-button');
+            const timerElement = document.getElementById('timer');
+            const timeLeftInput = document.getElementById('time-left-input');
+            const errorText = document.getElementById('error-text');
+            const usedWordsContainer = document.querySelector('.used-words');
+           
+            // Başlangıç zamanını data attribute'dan al
+            let timeLeft = parseFloat(timerElement.getAttribute('data-time') || 45);
+            let timerInterval;
+           
+            console.log("Initial time left:", timeLeft);
+            
+            // Sayfa yüklendiğinde textarea'ya focus ver
+            wordInput.focus();
+           
+            // Timer'ı başlat
+            startTimer();
+           
+            // Timer fonksiyonu
+            function startTimer() {
+                console.log("Starting timer");
+                
+                // Önceki timer'ı temizle
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                }
+                
+                timerInterval = setInterval(function() {
+                    timeLeft -= 0.1;  // Her 100ms'de 0.1 saniye azalt
+                   
+                    // Zamanı güncelle
+                    timerElement.textContent = timeLeft.toFixed(1);
+                    timeLeftInput.value = timeLeft.toFixed(1);
+                   
+                    // Süre bittiyse
+                    if (timeLeft <= 0) {
+                        console.log("Time's up!");
+                        clearInterval(timerInterval);
+                        window.location.href = '/game_over';
+                    }
+                }, 100);  // Her 100ms'de bir güncelle
+            }
+           
+            // Form submit olayını engelle ve AJAX kullan
+            wordForm.addEventListener('submit', function(event) {
+                console.log("Form submitted");
+                event.preventDefault();
+                submitWord();
+            });
+           
+            // Enter tuşuna basıldığında kelimeyi gönder
+            wordInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    console.log("Enter key pressed");
+                    event.preventDefault();
+                    submitWord();
+                }
+            });
+           
+            // Kelime gönderme fonksiyonu
+            function submitWord() {
+                console.log("Submitting word:", wordInput.value);
+                
+                // Boş kelime kontrolü
+                if (!wordInput.value.trim()) {
+                    console.log("Empty word, not submitting");
+                    return;
+                }
+                
+                // Timer'ı geçici olarak durdur
+                clearInterval(timerInterval);
+               
+                // Form verilerini al
+                const formData = new FormData();
+                formData.append('word', wordInput.value);
+                formData.append('time_left', timeLeft.toFixed(1));
+               
+                console.log("Sending time_left:", timeLeft.toFixed(1));
+                
+                // AJAX isteği gönder
+                fetch('/game', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    console.log("Response received:", response.status);
+                    
+                    // Yanıt türünü kontrol et
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        console.log("Non-JSON response, reloading page");
+                        window.location.reload();
+                        throw new Error('Expected JSON response but got HTML');
+                    }
+                })
+                .then(data => {
+                    console.log("Data received:", data);
+    
+                    // Sunucudan gelen verileri kullan
+                    if (data.game_over) {
+                        console.log("Game over!");
+                        window.location.href = '/game_over';
+                        return;
+                    }
+
+                    // Hata varsa arka plan animasyonunu tetikle
+                    if (data.error) {
+                        console.log("Error detected:", data.error);
+                        const body = document.getElementById('body');
+                        
+                        // Animasyon sınıfını ekle
+                        body.classList.add('error-animation');
+
+                        playWrongSound();
+                        
+                        // Animasyon bittiğinde sınıfı kaldır
+                        setTimeout(() => {
+                            body.classList.remove('error-animation');
+                        }, 1000);  // Animasyon süresi ile aynı (0.5s = 500ms)
+
+                        switch (data.error) {
+                            case 'wrong_letter':
+                                errorText.textContent = "The word must start with the last letter of the last word";
+                                break;
+                            case 'used_word':
+                                errorText.textContent = "Cannot use a word that has been used before";
+                                break;
+                            case 'invalid_char':
+                                errorText.textContent = "Cannot contain word space or special characters";
+                                break;
+                            case 'not_a_word':
+                                errorText.textContent = "The word is not in the dictionary";
+                                break;
+                        }
+                    }
+                    else {
+                        playCorrectSound();
+                        errorText.textContent = "";
+                    }
+                    
+                    // Süreyi güncelle
+                    console.log("Previous time left:", timeLeft);
+                    timeLeft = parseFloat(data.time_left);
+                    console.log("New time left from server:", timeLeft);
+                    timerElement.textContent = timeLeft.toFixed(1);
+                    
+                    // Süreyi güncelle
+                    timeLeft = parseFloat(data.time_left);
+                    timerElement.textContent = timeLeft.toFixed(1);
+                    
+                    // Skoru güncelle
+                    document.getElementById('score').textContent = data.score;
+                    
+                    // Mevcut kelimeyi güncelle
+                    document.getElementById('current-word').textContent = data.current_word;
+                    
+                    // Kullanılmış kelimeleri güncelle
+                    if (data.used_words && data.used_words.length > 0) {
+                        // Kullanılmış kelimeler listesini temizle
+                        usedWordsContainer.innerHTML = '';
+                        
+                        // Yeni kelimeleri ekle
+                        data.used_words.forEach(word => {
+                            const wordElement = document.createElement('div');
+                            wordElement.className = 'used-word';
+                            wordElement.textContent = word;
+                            usedWordsContainer.appendChild(wordElement);
+                        });
+                        
+                        // Scroll işlemini setTimeout içinde yaparak DOM güncellemesinin tamamlanmasını bekleyelim
+                        setTimeout(() => {
+                            usedWordsContainer.scrollTop = usedWordsContainer.scrollHeight;
+                        }, 0);
+                    }
+
+                    // Textarea'yı temizle ve focus ver
+                    wordInput.value = '';
+                    wordInput.focus();
+                    
+                    // Timer'ı yeniden başlat
+                    startTimer();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    
+                    // Hata durumunda timer'ı yeniden başlat
+                    startTimer();
+                    
+                    // Textarea'ya focus ver
+                    wordInput.focus();
+                });
+            }
+        });
+
+        
+
+    </script>
+</body>
+</html>
